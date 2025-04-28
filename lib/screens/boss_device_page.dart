@@ -3,16 +3,18 @@ import 'package:myapp/services/network_service.dart';
 import 'package:provider/provider.dart';
 
 class BossDevicePage extends StatefulWidget {
+  const BossDevicePage({super.key});
+
   @override
   _BossDevicePageState createState() => _BossDevicePageState();
 }
 
 class _BossDevicePageState extends State<BossDevicePage> {
   final NetworkService _networkService = NetworkService();
-  List<DeviceInfo> _discoveredDevices = [];
+  final List<DeviceInfo> _discoveredDevices = [];
   DeviceInfo? _selectedDevice;
   double _currentVolume = 0;
-  int _maxVolume = 15; // Assuming a default max volume for the slider
+  final int _maxVolume = 15; // Assuming a default max volume for the slider
 
   @override
   void initState() {

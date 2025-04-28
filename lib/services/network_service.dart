@@ -43,9 +43,8 @@ class NetworkService with ChangeNotifier {
   Future<void> startBroadcasting(String deviceId) async {
     _discoverySocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     Timer.periodic(Duration(seconds: 5), (Timer t) {
-      final message = '${
-        DISCOVERY_MESSAGE
-      }:${deviceId}';
+      final message = '$DISCOVERY_MESSAGE
+      :$deviceId';
       // Using utf8.encode to get Uint8List directly from string
       final Uint8List dataToSend = utf8.encode(message);
       _discoverySocket?.send(dataToSend, InternetAddress.fromRawAddress([255, 255, 255, 255]), DISCOVERY_PORT);
@@ -119,7 +118,7 @@ class NetworkService with ChangeNotifier {
   Future<bool> connectToDevice(String ipAddress) async {
     try {
       _commandClientSocket = await Socket.connect(ipAddress, COMMAND_PORT, timeout: Duration(seconds: 5));
-      print('Connected to ${ipAddress}:${COMMAND_PORT}');
+      print('Connected to $ipAddress:$COMMAND_PORT');
        // Start listening for responses (optional, but good practice)
       _commandClientSocket?.listen(
         (data) {

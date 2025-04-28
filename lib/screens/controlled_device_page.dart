@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:myapp/services/network_service.dart';
 import 'package:myapp/services/volume_control_service.dart';
 import 'package:uuid/uuid.dart'; // Import the Uuid class
 
 class ControlledDevicePage extends StatefulWidget {
+  const ControlledDevicePage({super.key});
+
   @override
   _ControlledDevicePageState createState() => _ControlledDevicePageState();
 }
@@ -33,7 +33,7 @@ class _ControlledDevicePageState extends State<ControlledDevicePage> {
       storedId = Uuid().v4(); // Correctly call the Uuid constructor
       await _storage.write(key: 'deviceId', value: storedId);
     }
-    _deviceId = storedId!; // Assign the non-null storedId
+    _deviceId = storedId; // Assign the non-null storedId
 
     _storedPassword = await _storage.read(key: 'control_password');
 

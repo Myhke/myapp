@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data'; // Keep import if needed elsewhere
-import 'package:network_tools/network_tools.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
 
 class DeviceInfo {
   final String ipAddress;
@@ -43,13 +42,15 @@ class NetworkService with ChangeNotifier {
   Future<void> startBroadcasting(String deviceId) async {
     _discoverySocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     Timer.periodic(Duration(seconds: 5), (Timer t) {
-      final message = '$DISCOVERY_MESSAGE
-      :$deviceId';
-      // Using utf8.encode to get Uint8List directly from string
+      final message = '$DISCOVERY_MESSAGE:$deviceId';
       final Uint8List dataToSend = utf8.encode(message);
-      _discoverySocket?.send(dataToSend, InternetAddress.fromRawAddress([255, 255, 255, 255]), DISCOVERY_PORT);
+      final Uint8List broadcastAddress = Uint8List.fromList([255, 255, 255, 255]);
+      _discoverySocket?.broadcastEnabled = true;
+      
+      _discoverySocket?.send(dataToSend, InternetAddress.fromRawAddress(broadcastAddress), DISCOVERY_PORT);
+      
       print('Broadcasting: $message');
-    });
+    });    
   }
 
   void stopBroadcasting() {

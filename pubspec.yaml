@@ -37,6 +37,7 @@ dependencies:
   network_tools: any
   flutter_secure_storage: any
   provider: any
+  flutter_bluetooth_serial: ^0.4.0
   uuid: any
 
 dev_dependencies:

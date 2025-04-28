@@ -37,8 +37,18 @@ class NetworkService with ChangeNotifier {
   RawDatagramSocket? _discoverySocket;
   ServerSocket? _commandServerSocket;
   Socket? _commandClientSocket;
+  bool _useBluetooth = false;
 
-  // For controlled device to broadcast its presence
+  // Getter para determinar si se está usando Bluetooth
+  bool get useBluetooth => _useBluetooth;
+
+  // Setter para cambiar entre Bluetooth y red
+  set useBluetooth(bool value) {
+    _useBluetooth = value;
+    notifyListeners();
+  }
+  
+  // Para controlled device to broadcast its presence
   Future<void> startBroadcasting(String deviceId) async {
     _discoverySocket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     Timer.periodic(Duration(seconds: 5), (Timer t) {

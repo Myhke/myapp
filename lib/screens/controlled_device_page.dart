@@ -16,9 +16,11 @@ class _ControlledDevicePageState extends State<ControlledDevicePage> {
   final _passwordController = TextEditingController();
   final _disablePasswordController = TextEditingController();
   final NetworkService _networkService = NetworkService();
+  final BluetoothService _bluetoothService = BluetoothService();
   String _deviceId = 'Unknown';
   String? _storedPassword;
   bool _isControlActive = false;
+  bool _useBluetoothMode = false;
 
   @override
   void initState() {
@@ -27,39 +29,56 @@ class _ControlledDevicePageState extends State<ControlledDevicePage> {
   }
 
   Future<void> _initDevice() async {
-    // Generate or retrieve a unique device ID
-    String? storedId = await _storage.read(key: 'deviceId');
-    if (storedId == null) {
-      storedId = Uuid().v4(); // Correctly call the Uuid constructor
-      await _storage.write(key: 'deviceId', value: storedId);
+    // Inicializar Bluetooth
+    bool bluetoothEnabled = await _bluetoothService.initBluetooth();
+    
+    // Obtener ID del dispositivo almacenado
+    String? storedId = await _storage.read(key: 'device_id');
+    if (storedId != null) {
+      setState(() {
+        _deviceId = storedId;
+      });
     }
-    _deviceId = storedId; // Assign the non-null storedId
 
-    _storedPassword = await _storage.read(key: 'control_password');
-
-    if (_storedPassword != null) {
+    // Verificar si hay una contraseña almacenada
+    String? storedPassword = await _storage.read(key: 'control_password');
+    if (storedPassword != null) {
+      setState(() {
+        _storedPassword = storedPassword;
+      });
+      // Si hay una contraseña, activar el control automáticamente
       _startControlledMode();
     }
-
-    setState(() {});
   }
 
-  void _startControlledMode() async {
-    print('Starting controlled mode...');
-    _networkService.startBroadcasting(_deviceId);
-    _networkService.startCommandServer(_handleCommand);
+  void _startControlledMode() {
+    if (_useBluetoothMode) {
+      // Iniciar servidor Bluetooth
+      _bluetoothService.startBluetoothServer(_handleCommand);
+    } else {
+      // Iniciar servidor de red (código existente)
+      _networkService.startBroadcasting(_deviceId);
+      _networkService.startCommandServer(_handleCommand);
+    }
     setState(() {
       _isControlActive = true;
     });
   }
 
   void _stopControlledMode() {
-     print('Stopping controlled mode...');
-    _networkService.stopBroadcasting();
-    _networkService.stopCommandServer();
-     setState(() {
+    if (_useBluetoothMode) {
+      // Detener servidor Bluetooth
+      _bluetoothService.disconnect();
+    } else {
+      // Detener servidor de red (código existente)
+      _networkService.stopBroadcasting();
+      _networkService.stopCommandServer();
+    }
+    setState(() {
       _isControlActive = false;
+      _storedPassword = null;
     });
+    _storage.delete(key: 'control_password');
   }
 
   void _handleCommand(String command) {
@@ -140,7 +159,15 @@ class _ControlledDevicePageState extends State<ControlledDevicePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Controlled Device'),
+        title: Text('Dispositivo Controlado'),
+        actions: [
+          Switch(
+            value: _useBluetoothMode,
+            onChanged: (value) => _toggleConnectionMode(),
+          ),
+          Text(_useBluetoothMode ? 'Bluetooth' : 'Red', 
+               style: TextStyle(fontSize: 12)),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
